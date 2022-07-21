@@ -21,7 +21,14 @@ const Title = styled.Text`
   margin: 0px 20px;
 `;
 
+const List = styled.ScrollView`
+  flex:1;
+  width: ${({ width }) => widthd -40}px;
+`;
+
 export default function App() {
+  const width = Dimensions.get('window').width;
+
   const [newTask, setNewTask] = useState('');
 
   const _addTask = () => {
@@ -51,6 +58,12 @@ export default function App() {
         <IconButton type={images.completed} />
         <IconButton type={images.delete} />
         <IconButton type={images.update} />
+        <List width={width}>
+          <Task text="Hanbit" />
+          <Task text="React Native" />
+          <Task text="React Native Sample" />
+          <Task text="Edit TODO item" />
+        </List>
       </Container>
     </ThemeProvider>
   );
