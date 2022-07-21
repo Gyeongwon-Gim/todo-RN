@@ -5,6 +5,8 @@ import Input from './components/Input';
 import {theme} from './theme';
 import {images} from './images';
 import IconButton from './components/IconButton';
+import Task from './components/Task';
+import { Dimensions } from 'react-native';
 
 const Container = styled.SafeAreaView`
   flex: 1;
@@ -23,17 +25,33 @@ const Title = styled.Text`
 
 const List = styled.ScrollView`
   flex:1;
-  width: ${({ width }) => widthd -40}px;
+  width: ${({ width }) => width -40}px;
 `;
 
 export default function App() {
   const width = Dimensions.get('window').width;
 
   const [newTask, setNewTask] = useState('');
+  const [tasks, setTasks] = useState({
+    '1': {id: '1', text: 'Hanbit', completed: false},
+    '2': {id: '2', text: 'React Native', completed: true},
+    '3': {id: '3', text: 'React Native Sample', completed: false},
+    '4': {id: '4', text: 'Edit TODO Item', completed: false}
+  });
 
   const _addTask = () => {
-    alert(`Add: ${newTask}`);
+    const ID =Date.now().toString();
+    const newTaskObject = {
+      [ID]: {id: ID, text: newTask, completed: false },
+    };
     setNewTask('');
+    setTasks({...tasks, ...newTaskObject });
+  };
+
+  const _deleteTask = id => {
+    const currentTasks = Object.assign({}, tasks);
+    delete currentTasks[id];
+    setTasks(currentTasks);
   };
 
   const _handleTextChange = text => {
@@ -54,15 +72,12 @@ export default function App() {
         onChangeText={_handleTextChange}
         onSubmitEditing={_addTask} 
         />
-        <IconButton type={images.uncompleted} />
-        <IconButton type={images.completed} />
-        <IconButton type={images.delete} />
-        <IconButton type={images.update} />
         <List width={width}>
-          <Task text="Hanbit" />
-          <Task text="React Native" />
-          <Task text="React Native Sample" />
-          <Task text="Edit TODO item" />
+          {Object.values(tasks)
+          .reverse()
+          .map(item => (
+            <Task key={item.id} text={item.text} deleteTask={_deleteTask} />
+          ))}
         </List>
       </Container>
     </ThemeProvider>
