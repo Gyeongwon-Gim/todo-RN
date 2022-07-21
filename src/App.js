@@ -76,7 +76,7 @@ export default function App() {
           {Object.values(tasks)
           .reverse()
           .map(item => (
-            <Task key={item.id} text={item.text} deleteTask={_deleteTask} />
+            <Task key={item.id} item={item} deleteTask={_deleteTask} />
           ))}
         </List>
       </Container>
