@@ -1,12 +1,10 @@
 import React,  {useState} from 'react';
-import { StatusBar } from 'react-native';
+import { StatusBar, Dimensions } from 'react-native';
 import styled, {ThemeProvider} from 'styled-components/native';
 import Input from './components/Input';
 import {theme} from './theme';
-import {images} from './images';
-import IconButton from './components/IconButton';
 import Task from './components/Task';
-import { Dimensions } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Container = styled.SafeAreaView`
   flex: 1;
@@ -31,13 +29,34 @@ const List = styled.ScrollView`
 export default function App() {
   const width = Dimensions.get('window').width;
 
+  // const [isReady, setIsReady] = useState(false);
   const [newTask, setNewTask] = useState('');
-  const [tasks, setTasks] = useState({
-    '1': {id: '1', text: 'Hanbit', completed: false},
-    '2': {id: '2', text: 'React Native', completed: true},
-    '3': {id: '3', text: 'React Native Sample', completed: false},
-    '4': {id: '4', text: 'Edit TODO Item', completed: false}
-  });
+  const [tasks, setTasks] = useState({});
+
+  // useEffect(() => {
+  //   async function go() {
+  //     await _loadTasks();
+  //     setTimeout(() => {
+  //       setIsReady(true);
+  //     }, 2000);
+  //   }
+  //   go();
+  //   return () => {};
+  // }, []);
+
+  const _saveTasks = async tasks => {
+    try{
+      await AsyncStorage.setItem('tasks', JSON.stringfy(tasks));
+      setTasks(tasks);
+    } catch(e) {
+      console.error(e);
+    }
+  };
+
+  const _loadTasks = async() =>{
+    const loadedTasks = await AsyncStorage.getItem('tasks');
+    setTasks(JSON.parse(loadedTasks || '{}'));
+  };
 
   const _addTask = () => {
     const ID =Date.now().toString();
@@ -45,18 +64,35 @@ export default function App() {
       [ID]: {id: ID, text: newTask, completed: false },
     };
     setNewTask('');
-    setTasks({...tasks, ...newTaskObject });
+    _saveTasks({...tasks, ...newTaskObject });
   };
 
   const _deleteTask = id => {
     const currentTasks = Object.assign({}, tasks);
     delete currentTasks[id];
-    setTasks(currentTasks);
+    _saveTasks(currentTasks);
+    
+  };
+
+  const _toggleTask = id => {
+    const currentTasks = Object.assign({}, tasks);
+    currentTasks[id]['completed'] = !currentTasks[id]['completed'];
+    _saveTasks(currentTasks);
+  };
+  
+  const _updateTask = item => {
+    const currentTasks = Object.assign({}, tasks);
+    currentTasks[item.id] = item;
+    _saveTasks(currentTasks);
   };
 
   const _handleTextChange = text => {
     setNewTask(text);
   };
+
+  const _onBlur = () => {
+    setNewTask('');
+  }
 
   return (
     <ThemeProvider theme={theme}>
@@ -71,12 +107,18 @@ export default function App() {
         value={newTask}
         onChangeText={_handleTextChange}
         onSubmitEditing={_addTask} 
+        onBlur={_onBlur}
         />
         <List width={width}>
           {Object.values(tasks)
           .reverse()
           .map(item => (
-            <Task key={item.id} item={item} deleteTask={_deleteTask} />
+            <Task key={item.id} 
+                  item={item} 
+                  deleteTask={_deleteTask}
+                  toggleTask={_toggleTask}
+                  updateTask={_updateTask} 
+                />
           ))}
         </List>
       </Container>
